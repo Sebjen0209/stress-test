@@ -1,7 +1,10 @@
 import time
 from locust import User, task, between, run_single_user
+from locust_plugins.users.webdriver import WebdriverUser
+from locust_plugins.listeners import RescheduleTaskOnFail
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -22,7 +25,7 @@ class UserBehavior(User):
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--disable-gpu")
-        driver = webdriver.Chrome(service=Service(r'Chromedriver\chromedriver.exe'), options=chrome_options)
+        driver = webdriver.Chrome(service=Service(r'Chromedriver\chromedriverArb.exe'), options=chrome_options)
         return driver
 
     def add_cookies(self):
@@ -36,24 +39,27 @@ class UserBehavior(User):
             "name": "cookieconsent_status",
             "value": "dismiss",
             "path": "/",
-            "secure": False
+            "secure": False,
         })
 
-    def perform_login(self):
-        wait = WebDriverWait(self.driver, 10)
+    def switch_to_login(self):
+        wait = WebDriverWait(self.driver, 5)
         login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#ContentDiv > div:nth-child(3) > div > div.ng-isolate-scope > ul > li:nth-child(2) > a")))
         login_button.click()
+        self.take_screenshot("LoginPane.png")
 
-        username_field = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#txt_Username")))
-        password_field = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#txt_Password")))
+    def perform_login(self):
+        wait = WebDriverWait(self.driver, 5)
 
-        self.take_screenshot("PrøverAtFindeloginelementer.png")
+        username_input = wait.until(EC.presence_of_element_located((By.ID, 'txt_UserName')))
+        username_input.send_keys('smhj@ufm.dk')
 
-        username_field.send_keys("smhj@ufm.dk")
-        password_field.send_keys("Confirm92222")
+        password_input = wait.until(EC.presence_of_element_located((By.ID, 'txt_Password')))
+        password_input.send_keys('Confirm922222')
 
         self.take_screenshot("ErDerINformationer.png")
 
+        
     def check_login_success(self):
         wait = WebDriverWait(self.driver, 10)
         try:
@@ -72,14 +78,9 @@ class UserBehavior(User):
     @task
     def login(self):
         self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
-
         self.add_cookies()
-        time.sleep(3)  # Consider replacing with explicit waits if needed
-        self.take_screenshot("Start_Picture.png")
-        
+        self.switch_to_login()
         self.perform_login()
-
-
         self.check_login_success()
 
 class WebsiteUser(User):
