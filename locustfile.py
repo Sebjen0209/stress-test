@@ -62,12 +62,13 @@ class UserBehavior(User):
 
         self.take_screenshot("2. ErDerINformationer.png")
         
-        password_input.send_keys(Keys.RETURN)
+        #password_input.send_keys(Keys.RETURN)
+
 
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         self.take_screenshot("3. blev der logget ind?.png")
 
-        '''
+
         print("login button touch ting")
         #login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='btn_GotLoginUsernamePassword']")))
         login_button = wait.until(EC.element_to_be_clickable((By.ID, 'btn_GotLoginUsernamePassword')))
@@ -76,17 +77,15 @@ class UserBehavior(User):
         login_button.click()
         print("fandt ting")
         self.take_screenshot("3. blev der logget ind?.png")
-        
-        '''
+
         
     def check_login_success(self):
         wait = WebDriverWait(self.driver, 10)
-        self.take_screenshot("er vi logget ind?.png")
         self.set_zoom_level(0.9)
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         try:
-            welcome_message = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome to e-grant.dk')]")))
+            welcome_message = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Velkommen til e-grant.dk')]")))
             if welcome_message:
                 print("Login successful")
             else:
