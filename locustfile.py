@@ -11,29 +11,27 @@ class UserBehavior(User):
     wait_time = between(1, 5)
 
     def on_start(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--disable-gpu")
-
-        # Initialize WebDriver
-        self.driver = webdriver.Chrome(service=Service(r'Chromedriver\chromedriver.exe'), options=chrome_options)
-        self.driver.set_window_size(1400, 1000)  # Optional
-        self.driver.implicitly_wait(5)  # Optional
+        self.driver = self.initialize_webdriver()
+        self.driver.set_window_size(1400, 1000)
+        self.driver.implicitly_wait(5)
 
     def on_stop(self):
         self.driver.quit()
 
-    @task
-    def login(self):
-        self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
- 
+    def initialize_webdriver(self):
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        driver = webdriver.Chrome(service=Service(r'Chromedriver\chromedriver.exe'), options=chrome_options)
+        return driver
+
+    def add_cookies(self):
         self.driver.add_cookie({
             "name": "favorite_login_method",
             "value": "userpass",
             "path": "/",
             "secure": False,
         })
- 
         self.driver.add_cookie({
             "name": "cookieconsent_status",
             "value": "dismiss",
@@ -41,38 +39,48 @@ class UserBehavior(User):
             "secure": False
         })
 
-        time.sleep(3)  # Consider replacing with explicit waits if needed
-
-        self.driver.save_screenshot("Start_Picture.png")
-
-        # Initialize wait
+    def perform_login(self):
         wait = WebDriverWait(self.driver, 10)
- 
-        # Handle element interactions
         login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#ContentDiv > div:nth-child(3) > div > div.ng-isolate-scope > ul > li:nth-child(2) > a")))
         login_button.click()
 
-        self.driver.save_screenshot("trykkerdenfaktisk.png")
+        username_field = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#txt_Username")))
+        password_field = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#txt_Password")))
 
-        # Find username and password input fields
-        username_field = wait.until(EC.presence_of_element_located((By.NAME, "txt_Username")))
-        password_field = wait.until(EC.presence_of_element_located((By.NAME, "txt_Password")))
- 
-        # Fill the fields with information
+        self.take_screenshot("PrøverAtFindeloginelementer.png")
+
         username_field.send_keys("smhj@ufm.dk")
         password_field.send_keys("Confirm92222")
- 
+
+        self.take_screenshot("ErDerINformationer.png")
+
+    def check_login_success(self):
+        wait = WebDriverWait(self.driver, 10)
         try:
-            # Use explicit wait to find the welcome message
             welcome_message = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Velkommen til e-grant.dk')]")))
             if welcome_message:
                 print("Login successful")
             else:
                 print("Login failed")
-
         except Exception as e:
-            self.driver.save_screenshot("welcome_message_error.png")
+            self.take_screenshot("welcome_message_error.png")
             print(f"Login failed: {e}")
+
+    def take_screenshot(self, filename):
+        self.driver.save_screenshot(filename)
+
+    @task
+    def login(self):
+        self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
+
+        self.add_cookies()
+        time.sleep(3)  # Consider replacing with explicit waits if needed
+        self.take_screenshot("Start_Picture.png")
+        
+        self.perform_login()
+
+
+        self.check_login_success()
 
 class WebsiteUser(User):
     tasks = [UserBehavior]
