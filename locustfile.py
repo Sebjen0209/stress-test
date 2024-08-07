@@ -16,8 +16,9 @@ class UserBehavior(User):
     def on_start(self):
         self.driver = self.initialize_webdriver()
         self.driver.set_window_size(1400, 1000)
+        self.set_zoom_level(0.1)
         self.driver.implicitly_wait(5)
-
+        
     def on_stop(self):
         self.driver.quit()
 
@@ -46,24 +47,46 @@ class UserBehavior(User):
         wait = WebDriverWait(self.driver, 5)
         login_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#ContentDiv > div:nth-child(3) > div > div.ng-isolate-scope > ul > li:nth-child(2) > a")))
         login_button.click()
-        self.take_screenshot("LoginPane.png")
+        self.take_screenshot("1. LoginPane.png")
 
     def perform_login(self):
         wait = WebDriverWait(self.driver, 5)
 
         username_input = wait.until(EC.presence_of_element_located((By.ID, 'txt_UserName')))
-        username_input.send_keys('smhj@ufm.dk')
+        username_input.send_keys('sebastianjensen0209@gmail.com')
 
         password_input = wait.until(EC.presence_of_element_located((By.ID, 'txt_Password')))
-        password_input.send_keys('Confirm922222')
+        password_input.send_keys('Sebber0209')
 
-        self.take_screenshot("ErDerINformationer.png")
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
+        self.take_screenshot("2. ErDerINformationer.png")
+        
+        password_input.send_keys(Keys.RETURN)
+
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        self.take_screenshot("3. blev der logget ind?.png")
+
+        '''
+        print("login button touch ting")
+        #login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='btn_GotLoginUsernamePassword']")))
+        login_button = wait.until(EC.element_to_be_clickable((By.ID, 'btn_GotLoginUsernamePassword')))
+        
+        print("find ting")
+        login_button.click()
+        print("fandt ting")
+        self.take_screenshot("3. blev der logget ind?.png")
+        
+        '''
         
     def check_login_success(self):
         wait = WebDriverWait(self.driver, 10)
+        self.take_screenshot("er vi logget ind?.png")
+        self.set_zoom_level(0.9)
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
         try:
-            welcome_message = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Velkommen til e-grant.dk')]")))
+            welcome_message = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Welcome to e-grant.dk')]")))
             if welcome_message:
                 print("Login successful")
             else:
@@ -74,6 +97,9 @@ class UserBehavior(User):
 
     def take_screenshot(self, filename):
         self.driver.save_screenshot(filename)
+
+    def set_zoom_level(self, zoom_factor):
+        self.driver.execute_script(f"document.body.style.zoom='{zoom_factor}'")
 
     @task
     def login(self):
