@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 class UserBehavior(User):
     wait_time = between(1, 5)
+    logged_in = False
 
     def on_start(self):
         self.driver = self.initialize_webdriver()
@@ -62,22 +63,15 @@ class UserBehavior(User):
 
         self.take_screenshot("2. ErDerINformationer.png")
         
-        #password_input.send_keys(Keys.RETURN)
-
-
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         self.take_screenshot("3. blev der logget ind?.png")
 
-
         print("login button touch ting")
-        #login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='btn_GotLoginUsernamePassword']")))
         login_button = wait.until(EC.element_to_be_clickable((By.ID, 'btn_GotLoginUsernamePassword')))
         
         print("find ting")
         login_button.click()
         print("fandt ting")
-        self.take_screenshot("3. blev der logget ind?.png")
-
         
     def check_login_success(self):
         wait = WebDriverWait(self.driver, 10)
@@ -91,7 +85,7 @@ class UserBehavior(User):
             else:
                 print("Login failed")
         except Exception as e:
-            self.take_screenshot("welcome_message_error.png")
+            self.take_screenshot("3. welcome_message_error.png")
             print(f"Login failed: {e}")
 
     def take_screenshot(self, filename):
@@ -102,11 +96,13 @@ class UserBehavior(User):
 
     @task
     def login(self):
-        self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
-        self.add_cookies()
-        self.switch_to_login()
-        self.perform_login()
-        self.check_login_success()
+        if not self.logged_in:
+            self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
+            self.add_cookies()
+            self.switch_to_login()
+            self.perform_login()
+            self.check_login_success()
+            self.environment.runner.quit() 
 
 class WebsiteUser(User):
     tasks = [UserBehavior]
