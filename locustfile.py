@@ -70,14 +70,18 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
             self.switch_to_login()
             self.perform_login()
             self.check_login_success()
-
+            
+        '''
         if self.logged_in:
-            response = self.client.get("/BrugerRestService.svc/HentBrugerInformation")
+            #response = self.client.get("/BrugerRestService.svc/HentBrugerInformation")
+            response = self.client.get("/SagRestService.svc/Uddelinger?SprogKultur=en-uk")
             if response.status_code == 200:
                 print("Successfully accessed authenticated endpoint")
             else:
                 print("Failed to access authenticated endpoint")
 
+        '''
+        
 if __name__ == "__main__":
     import os
     os.system("locust -f your_script.py --users 100 --spawn-rate 10")
