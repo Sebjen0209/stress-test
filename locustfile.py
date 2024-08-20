@@ -25,6 +25,11 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-popup-blocking")
+        chrome_options.add_argument("--window-size=800,600")
         driver = webdriver.Chrome(service=Service(r'Chromedriver\chromedriverArb.exe'), options=chrome_options)
         return driver
 
@@ -36,7 +41,7 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
     def perform_login(self):
         wait = WebDriverWait(self.driver, 5)
         username_input = wait.until(EC.presence_of_element_located((By.ID, 'txt_UserName')))
-        username_input.send_keys('sebastianjensen0209@gmail.com')
+        username_input.send_keys('smhj@ufm.dk')
 
         password_input = wait.until(EC.presence_of_element_located((By.ID, 'txt_Password')))
         password_input.send_keys('Sebber0209')
@@ -76,7 +81,13 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
         before_login_respone= self.client.get("/HentSystemtekster?Sprog=da-DK")
         print("this is a request to the server before we log in")
         
+    '''
+    @task
+    def hello_world(self):
+        self.client.get("/hello")
 
+    '''
+    
     @task
     def login(self):
 
@@ -87,8 +98,6 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
             self.perform_login()
             self.check_login_success()
             self.login_response()
-        
-
         
 if __name__ == "__main__":
     import os
