@@ -16,10 +16,11 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
         self.driver.set_window_size(1400, 1000)
         self.set_zoom_level(0.1)
         self.driver.implicitly_wait(5)
-        
+
     def on_stop(self):
         if self.driver:
             self.driver.quit()
+            self.logged_in = False
 
     def initialize_webdriver(self):
         chrome_options = Options()
@@ -81,16 +82,8 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
         before_login_respone= self.client.get("/HentSystemtekster?Sprog=da-DK")
         print("this is a request to the server before we log in")
         
-    '''
-    @task
-    def hello_world(self):
-        self.client.get("/hello")
-
-    '''
-    
     @task
     def login(self):
-
         if not self.logged_in:
             self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
             self.switch_to_login()
@@ -98,6 +91,10 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
             self.perform_login()
             self.check_login_success()
             self.login_response()
+        
+        # Restart the session by stopping and starting again
+        self.on_stop()  # Close the current browser session
+        self.on_start()  # Start a new browser session and perform login again
         
 if __name__ == "__main__":
     import os
