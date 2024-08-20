@@ -53,7 +53,7 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
         self.logged_in = True 
         
         time.sleep(2)
-        self.take_screenshot("pic")
+        #self.take_screenshot("pic")
 
     def take_screenshot(self, filename):
         screenshot_folder = "Pics"
@@ -63,24 +63,32 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
     def set_zoom_level(self, zoom_factor):
         self.driver.execute_script(f"document.body.style.zoom='{zoom_factor}'")
 
-    @task
-    def login(self):
-        if not self.logged_in:
-            self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
-            self.switch_to_login()
-            self.perform_login()
-            self.check_login_success()
-            
-        '''
+    def login_response(self):
+        login_response = self.client.get("/SagRestService.svc/Uddelinger?SprogKultur=en-uk")
+
         if self.logged_in:
-            #response = self.client.get("/BrugerRestService.svc/HentBrugerInformation")
-            response = self.client.get("/SagRestService.svc/Uddelinger?SprogKultur=en-uk")
-            if response.status_code == 200:
+            if login_response.status_code == 200:
                 print("Successfully accessed authenticated endpoint")
             else:
                 print("Failed to access authenticated endpoint")
+    
+    def before_login_response(self):
+        before_login_respone= self.client.get("/HentSystemtekster?Sprog=da-DK")
+        print("this is a request to the server before we log in")
+        
 
-        '''
+    @task
+    def login(self):
+
+        if not self.logged_in:
+            self.driver.get("https://login.e-grant.dk/?wa=wsignin1.0&wtrealm=urn%3aTilskudsPortal&wctx=https%3a%2f%2fwww.e-grant.dk%2f_layouts%2f15%2fAuthenticate.aspx%3fSource%3dhttps%3a%2f%2fwww.e-grant.dk%2f")
+            self.switch_to_login()
+            self.before_login_response()
+            self.perform_login()
+            self.check_login_success()
+            self.login_response()
+        
+
         
 if __name__ == "__main__":
     import os
