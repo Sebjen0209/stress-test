@@ -82,6 +82,8 @@ class WebsiteUser(FastHttpUser):  # Single user class for all behavior
         print("this is a request to the server before we log in")
         
     '''
+    denne her bruges til hvis der bare skal køres normale request til en server.
+    den sender request til api'et /hello.
     @task
     def hello_world(self):
         self.client.get("/hello")
